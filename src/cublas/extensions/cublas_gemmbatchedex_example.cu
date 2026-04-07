@@ -51,16 +51,16 @@
 #include <cstdlib>
 #include <vector>
 
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
+#include <UPTK_blas.h>
+#include <UPTK_runtime.h>
 
 #include "../utils/cublas_utils.h"
 
 using data_type = double;
 
 TEST(cublas_extensions,cublas_gemmbatchedex_example) {
-    cublasHandle_t cublasH = NULL;
-    cudaStream_t stream = NULL;
+    UPTKblasHandle_t cublasH = NULL;
+    UPTKStream_t stream = NULL;
 
     const int m = 2;
     const int n = 2;
@@ -95,10 +95,10 @@ TEST(cublas_extensions,cublas_gemmbatchedex_example) {
     std::vector<data_type *> d_B(batch_count, nullptr);
     std::vector<data_type *> d_C(batch_count, nullptr);
 
-    cublasOperation_t transa = CUBLAS_OP_N;
-    cublasOperation_t transb = CUBLAS_OP_N;
-    //cublasComputeType_t compute_type = CUBLAS_COMPUTE_64F;
-    cudaDataType compute_type = CUDA_R_64F;
+    UPTKblasOperation_t transa = UPTKBLAS_OP_N;
+    UPTKblasOperation_t transb = UPTKBLAS_OP_N;
+    //UPTKblasComputeType_t compute_type = UPTKBLAS_COMPUTE_64F;
+    UPTKDataType compute_type = UPTK_R_64F;
 
     // printf("A[0]\n");
     // check_matrix(m, k, A_array[0].data(), lda);
@@ -117,56 +117,56 @@ TEST(cublas_extensions,cublas_gemmbatchedex_example) {
     // printf("=====\n");
 
     /* step 1: create cublas handle, bind a stream */
-    CUBLAS_CHECK(cublasCreate(&cublasH));
+    CUBLAS_CHECK(UPTKblasCreate(&cublasH));
 
-    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUBLAS_CHECK(cublasSetStream(cublasH, stream));
+    CUDA_CHECK(UPTKStreamCreateWithFlags(&stream, UPTKStreamNonBlocking));
+    CUBLAS_CHECK(UPTKblasSetStream(cublasH, stream));
 
     /* step 2: copy data to device */
     for (int i = 0; i < batch_count; i++) {
         CUDA_CHECK(
-            cudaMalloc(reinterpret_cast<void **>(&d_A[i]), sizeof(data_type) * A_array[i].size()));
+            UPTKMalloc(reinterpret_cast<void **>(&d_A[i]), sizeof(data_type) * A_array[i].size()));
         CUDA_CHECK(
-            cudaMalloc(reinterpret_cast<void **>(&d_B[i]), sizeof(data_type) * B_array[i].size()));
+            UPTKMalloc(reinterpret_cast<void **>(&d_B[i]), sizeof(data_type) * B_array[i].size()));
         CUDA_CHECK(
-            cudaMalloc(reinterpret_cast<void **>(&d_C[i]), sizeof(data_type) * C_array[i].size()));
+            UPTKMalloc(reinterpret_cast<void **>(&d_C[i]), sizeof(data_type) * C_array[i].size()));
     }
 
     CUDA_CHECK(
-        cudaMalloc(reinterpret_cast<void **>(&d_A_array), sizeof(data_type *) * batch_count));
+        UPTKMalloc(reinterpret_cast<void **>(&d_A_array), sizeof(data_type *) * batch_count));
     CUDA_CHECK(
-        cudaMalloc(reinterpret_cast<void **>(&d_B_array), sizeof(data_type *) * batch_count));
+        UPTKMalloc(reinterpret_cast<void **>(&d_B_array), sizeof(data_type *) * batch_count));
     CUDA_CHECK(
-        cudaMalloc(reinterpret_cast<void **>(&d_C_array), sizeof(data_type *) * batch_count));
+        UPTKMalloc(reinterpret_cast<void **>(&d_C_array), sizeof(data_type *) * batch_count));
 
     for (int i = 0; i < batch_count; i++) {
-        CUDA_CHECK(cudaMemcpyAsync(d_A[i], A_array[i].data(), sizeof(data_type) * A_array[i].size(),
-                                   cudaMemcpyHostToDevice, stream));
-        CUDA_CHECK(cudaMemcpyAsync(d_B[i], B_array[i].data(), sizeof(data_type) * B_array[i].size(),
-                                   cudaMemcpyHostToDevice, stream));
+        CUDA_CHECK(UPTKMemcpyAsync(d_A[i], A_array[i].data(), sizeof(data_type) * A_array[i].size(),
+                                   UPTKMemcpyHostToDevice, stream));
+        CUDA_CHECK(UPTKMemcpyAsync(d_B[i], B_array[i].data(), sizeof(data_type) * B_array[i].size(),
+                                   UPTKMemcpyHostToDevice, stream));
     }
 
-    CUDA_CHECK(cudaMemcpyAsync(d_A_array, d_A.data(), sizeof(data_type *) * batch_count,
-                               cudaMemcpyHostToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_B_array, d_B.data(), sizeof(data_type *) * batch_count,
-                               cudaMemcpyHostToDevice, stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_C_array, d_C.data(), sizeof(data_type *) * batch_count,
-                               cudaMemcpyHostToDevice, stream));
+    CUDA_CHECK(UPTKMemcpyAsync(d_A_array, d_A.data(), sizeof(data_type *) * batch_count,
+                               UPTKMemcpyHostToDevice, stream));
+    CUDA_CHECK(UPTKMemcpyAsync(d_B_array, d_B.data(), sizeof(data_type *) * batch_count,
+                               UPTKMemcpyHostToDevice, stream));
+    CUDA_CHECK(UPTKMemcpyAsync(d_C_array, d_C.data(), sizeof(data_type *) * batch_count,
+                               UPTKMemcpyHostToDevice, stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasGemmBatchedEx(cublasH, transa, transb, m, n, k, &alpha, (const void * const*)d_A_array,
+    CUBLAS_CHECK(UPTKblasGemmBatchedEx(cublasH, transa, transb, m, n, k, &alpha, (const void * const*)d_A_array,
                                      traits<data_type>::cuda_data_type, lda, (const void * const*)d_B_array,
                                      traits<data_type>::cuda_data_type, ldb, &beta, (void * const*)d_C_array,
                                      traits<data_type>::cuda_data_type, ldc, batch_count,
-                                     compute_type, CUBLAS_GEMM_DEFAULT));
+                                     compute_type, UPTKBLAS_GEMM_DEFAULT));
 
     /* step 4: copy data to host */
     for (int i = 0; i < batch_count; i++) {
-        CUDA_CHECK(cudaMemcpyAsync(C_array[i].data(), d_C[i], sizeof(data_type) * C_array[i].size(),
-                                   cudaMemcpyDeviceToHost, stream));
+        CUDA_CHECK(UPTKMemcpyAsync(C_array[i].data(), d_C[i], sizeof(data_type) * C_array[i].size(),
+                                   UPTKMemcpyDeviceToHost, stream));
     }
 
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+    CUDA_CHECK(UPTKStreamSynchronize(stream));
 
     /*
      *   C = | 19.0 | 43.0 | 111.0 | 151.0 |
@@ -183,20 +183,20 @@ TEST(cublas_extensions,cublas_gemmbatchedex_example) {
     //printf("=====\n");
 
     /* free resources */
-    CUDA_CHECK(cudaFree(d_A_array));
-    CUDA_CHECK(cudaFree(d_B_array));
-    CUDA_CHECK(cudaFree(d_C_array));
+    CUDA_CHECK(UPTKFree(d_A_array));
+    CUDA_CHECK(UPTKFree(d_B_array));
+    CUDA_CHECK(UPTKFree(d_C_array));
     for (int i = 0; i < batch_count; i++) {
-        CUDA_CHECK(cudaFree(d_A[i]));
-        CUDA_CHECK(cudaFree(d_B[i]));
-        CUDA_CHECK(cudaFree(d_C[i]));
+        CUDA_CHECK(UPTKFree(d_A[i]));
+        CUDA_CHECK(UPTKFree(d_B[i]));
+        CUDA_CHECK(UPTKFree(d_C[i]));
     }
 
-    CUBLAS_CHECK(cublasDestroy(cublasH));
+    CUBLAS_CHECK(UPTKblasDestroy(cublasH));
 
-    CUDA_CHECK(cudaStreamDestroy(stream));
+    CUDA_CHECK(UPTKStreamDestroy(stream));
 
-    CUDA_CHECK(cudaDeviceReset());
+    CUDA_CHECK(UPTKDeviceReset());
 
     //return EXIT_SUCCESS;
 }

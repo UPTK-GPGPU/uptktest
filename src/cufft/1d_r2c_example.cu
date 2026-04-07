@@ -51,8 +51,8 @@
 
 TEST(cufft, 1d_r2c_example)
 {
-    cufftHandle plan;
-    cudaStream_t stream = NULL;
+    UPTKfftHandle plan;
+    UPTKStream_t stream = NULL;
 
     int n = 8;
     int batch_size = 2;
@@ -71,28 +71,28 @@ TEST(cufft, 1d_r2c_example)
     }
 
     input_type *d_input = nullptr;
-    cufftComplex *d_output = nullptr;
+    UPTKfftComplex *d_output = nullptr;
 
-    CUFFT_CALL(cufftCreate(&plan));
-    CUFFT_CALL(cufftPlan1d(&plan, input.size(), CUFFT_R2C, batch_size));
+    CUFFT_CALL(UPTKfftCreate(&plan));
+    CUFFT_CALL(UPTKfftPlan1d(&plan, input.size(), UPTKFFT_R2C, batch_size));
 
-    CUDA_RT_CALL(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUFFT_CALL(cufftSetStream(plan, stream));
+    CUDA_RT_CALL(UPTKStreamCreateWithFlags(&stream, UPTKStreamNonBlocking));
+    CUFFT_CALL(UPTKfftSetStream(plan, stream));
 
     // Create device arrays
     CUDA_RT_CALL(
-        cudaMalloc(reinterpret_cast<void **>(&d_input), sizeof(input_type) * input.size()));
+        UPTKMalloc(reinterpret_cast<void **>(&d_input), sizeof(input_type) * input.size()));
     CUDA_RT_CALL(
-        cudaMalloc(reinterpret_cast<void **>(&d_output), sizeof(output_type) * output.size()));
-    CUDA_RT_CALL(cudaMemcpyAsync(d_input, input.data(), sizeof(input_type) * input.size(),
-                                 cudaMemcpyHostToDevice, stream));
+        UPTKMalloc(reinterpret_cast<void **>(&d_output), sizeof(output_type) * output.size()));
+    CUDA_RT_CALL(UPTKMemcpyAsync(d_input, input.data(), sizeof(input_type) * input.size(),
+                                 UPTKMemcpyHostToDevice, stream));
 
-    CUFFT_CALL(cufftExecR2C(plan, d_input, d_output));
+    CUFFT_CALL(UPTKfftExecR2C(plan, d_input, d_output));
 
-    CUDA_RT_CALL(cudaMemcpyAsync(output.data(), d_output, sizeof(output_type) * output.size(),
-                                 cudaMemcpyDeviceToHost, stream));
+    CUDA_RT_CALL(UPTKMemcpyAsync(output.data(), d_output, sizeof(output_type) * output.size(),
+                                 UPTKMemcpyDeviceToHost, stream));
 
-    CUDA_RT_CALL(cudaStreamSynchronize(stream));
+    CUDA_RT_CALL(UPTKStreamSynchronize(stream));
 
     std::vector<output_type> expect_data(static_cast<int>((fft_size / 2 + 1)));
     expect_data[0] = output_type(120.f, 0.f);
@@ -112,12 +112,12 @@ TEST(cufft, 1d_r2c_example)
     }
 
     /* free resources */
-    CUDA_RT_CALL(cudaFree(d_input));
-    CUDA_RT_CALL(cudaFree(d_output));
+    CUDA_RT_CALL(UPTKFree(d_input));
+    CUDA_RT_CALL(UPTKFree(d_output));
 
-    CUFFT_CALL(cufftDestroy(plan));
+    CUFFT_CALL(UPTKfftDestroy(plan));
 
-    CUDA_RT_CALL(cudaStreamDestroy(stream));
+    CUDA_RT_CALL(UPTKStreamDestroy(stream));
 
-    CUDA_RT_CALL(cudaDeviceReset());
+    CUDA_RT_CALL(UPTKDeviceReset());
 }

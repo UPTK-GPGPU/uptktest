@@ -51,16 +51,16 @@
 #include <cstdlib>
 #include <vector>
 
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
+#include <UPTK_blas.h>
+#include <UPTK_runtime.h>
 
 #include "../utils/cublas_utils.h"
 
 using data_type = cuDoubleComplex;
 
 TEST(cublas_level_2,cublas_her_example){
-    cublasHandle_t cublasH = NULL;
-    cudaStream_t stream = NULL;
+    UPTKblasHandle_t cublasH = NULL;
+    UPTKStream_t stream = NULL;
 
     const int m = 2;
     const int n = 2;
@@ -80,7 +80,7 @@ TEST(cublas_level_2,cublas_her_example){
     data_type *d_A = nullptr;
     data_type *d_x = nullptr;
 
-    cublasFillMode_t uplo = CUBLAS_FILL_MODE_UPPER;
+    UPTKblasFillMode_t uplo = UPTKBLAS_FILL_MODE_UPPER;
 
     // printf("A\n");
     // check_matrix(m, n, A.data(), lda);
@@ -91,28 +91,28 @@ TEST(cublas_level_2,cublas_her_example){
     // printf("=====\n");
 
     /* step 1: create cublas handle, bind a stream */
-    CUBLAS_CHECK(cublasCreate(&cublasH));
+    CUBLAS_CHECK(UPTKblasCreate(&cublasH));
 
-    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUBLAS_CHECK(cublasSetStream(cublasH, stream));
+    CUDA_CHECK(UPTKStreamCreateWithFlags(&stream, UPTKStreamNonBlocking));
+    CUBLAS_CHECK(UPTKblasSetStream(cublasH, stream));
 
     /* step 2: copy data to device */
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_x), sizeof(data_type) * x.size()));
+    CUDA_CHECK(UPTKMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
+    CUDA_CHECK(UPTKMalloc(reinterpret_cast<void **>(&d_x), sizeof(data_type) * x.size()));
 
-    CUDA_CHECK(cudaMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), cudaMemcpyHostToDevice,
+    CUDA_CHECK(UPTKMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), UPTKMemcpyHostToDevice,
                                stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_x, x.data(), sizeof(data_type) * x.size(), cudaMemcpyHostToDevice,
+    CUDA_CHECK(UPTKMemcpyAsync(d_x, x.data(), sizeof(data_type) * x.size(), UPTKMemcpyHostToDevice,
                                stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasZher(cublasH, uplo, n, &alpha, d_x, incx, d_A, lda));
+    CUBLAS_CHECK(UPTKblasZher(cublasH, uplo, n, &alpha, d_x, incx, d_A, lda));
 
     /* step 4: copy data to host */
-    CUDA_CHECK(cudaMemcpyAsync(A.data(), d_A, sizeof(data_type) * A.size(), cudaMemcpyDeviceToHost,
+    CUDA_CHECK(UPTKMemcpyAsync(A.data(), d_A, sizeof(data_type) * A.size(), UPTKMemcpyDeviceToHost,
                                stream));
 
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+    CUDA_CHECK(UPTKStreamSynchronize(stream));
 
     /*
      *   A = | 65.55 + 0.00j |  91.61 + 4.82j |
@@ -125,14 +125,14 @@ TEST(cublas_level_2,cublas_her_example){
     //printf("=====\n");
 
     /* free resources */
-    CUDA_CHECK(cudaFree(d_A));
-    CUDA_CHECK(cudaFree(d_x));
+    CUDA_CHECK(UPTKFree(d_A));
+    CUDA_CHECK(UPTKFree(d_x));
 
-    CUBLAS_CHECK(cublasDestroy(cublasH));
+    CUBLAS_CHECK(UPTKblasDestroy(cublasH));
 
-    CUDA_CHECK(cudaStreamDestroy(stream));
+    CUDA_CHECK(UPTKStreamDestroy(stream));
 
-    CUDA_CHECK(cudaDeviceReset());
+    CUDA_CHECK(UPTKDeviceReset());
 
     //return EXIT_SUCCESS;
 }

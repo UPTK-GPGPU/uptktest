@@ -38,15 +38,15 @@
 #include <string>
 
 #include <cuComplex.h>
-#include <cublas_api.h>
-#include <cuda_runtime_api.h>
+#include <UPTK_blas.h>
+#include <UPTK_runtime_api.h>
 #include <library_types.h>
 
 // CUDA API error checking
 #define CUDA_CHECK(err)                                                                            \
     do {                                                                                           \
-        cudaError_t err_ = (err);                                                                  \
-        if (err_ != cudaSuccess) {                                                                 \
+        UPTKError_t err_ = (err);                                                                  \
+        if (err_ != UPTKSuccess) {                                                                 \
             std::printf("CUDA error %d at %s:%d\n", err_, __FILE__, __LINE__);                     \
             throw std::runtime_error("CUDA error");                                                \
         }                                                                                          \
@@ -55,8 +55,8 @@
 // cublas API error checking
 #define CUBLAS_CHECK(err)                                                                          \
     do {                                                                                           \
-        cublasStatus_t err_ = (err);                                                               \
-        if (err_ != CUBLAS_STATUS_SUCCESS) {                                                       \
+        UPTKblasStatus_t err_ = (err);                                                               \
+        if (err_ != UPTKBLAS_STATUS_SUCCESS) {                                                       \
             std::printf("cublas error %d at %s:%d\n", err_, __FILE__, __LINE__);                   \
             throw std::runtime_error("cublas error");                                              \
         }                                                                                          \
@@ -77,7 +77,7 @@ template <>  struct traits<float> {
     typedef T S;
 
     static constexpr T zero = 0.f;
-    static constexpr cudaDataType cuda_data_type = CUDA_R_32F;
+    static constexpr UPTKDataType cuda_data_type = UPTK_R_32F;
 
     inline static S abs(T val) { return fabs(val); }
 
@@ -94,7 +94,7 @@ template <>  struct traits<double> {
     typedef T S;
 
     static constexpr T zero = 0.;
-    static constexpr cudaDataType cuda_data_type = CUDA_R_64F;
+    static constexpr UPTKDataType cuda_data_type = UPTK_R_64F;
 
     inline static S abs(T val) { return fabs(val); }
 
@@ -111,7 +111,7 @@ template <>  struct traits<cuFloatComplex> {
     typedef cuFloatComplex T;
 
     static constexpr T zero = {0.f, 0.f};
-    static constexpr cudaDataType cuda_data_type = CUDA_C_32F;
+    static constexpr UPTKDataType cuda_data_type = UPTK_C_32F;
 
     inline static S abs(T val) { return cuCabsf(val); }
 
@@ -131,7 +131,7 @@ template <>  struct traits<cuDoubleComplex> {
     typedef cuDoubleComplex T;
 
     static constexpr T zero = {0., 0.};
-    static constexpr cudaDataType cuda_data_type = CUDA_C_64F;
+    static constexpr UPTKDataType cuda_data_type = UPTK_C_64F;
 
     inline static S abs(T val) { return cuCabs(val); }
 
@@ -301,37 +301,37 @@ template <typename T> static void make_diag_dominant_matrix(int m, int n, T *A, 
     }
 }
 
-// Returns cudaDataType value as defined in library_types.h for the string
+// Returns UPTKDataType value as defined in library_types.h for the string
 // containing type name
-static cudaDataType get_cuda_library_type(std::string type_string) {
-    if (type_string.compare("CUDA_R_16F") == 0)
-        return CUDA_R_16F;
-    else if (type_string.compare("CUDA_C_16F") == 0)
-        return CUDA_C_16F;
-    else if (type_string.compare("CUDA_R_32F") == 0)
-        return CUDA_R_32F;
-    else if (type_string.compare("CUDA_C_32F") == 0)
-        return CUDA_C_32F;
-    else if (type_string.compare("CUDA_R_64F") == 0)
-        return CUDA_R_64F;
-    else if (type_string.compare("CUDA_C_64F") == 0)
-        return CUDA_C_64F;
-    else if (type_string.compare("CUDA_R_8I") == 0)
-        return CUDA_R_8I;
-    else if (type_string.compare("CUDA_C_8I") == 0)
-        return CUDA_C_8I;
-    else if (type_string.compare("CUDA_R_8U") == 0)
-        return CUDA_R_8U;
-    else if (type_string.compare("CUDA_C_8U") == 0)
-        return CUDA_C_8U;
-    else if (type_string.compare("CUDA_R_32I") == 0)
-        return CUDA_R_32I;
-    else if (type_string.compare("CUDA_C_32I") == 0)
-        return CUDA_C_32I;
-    else if (type_string.compare("CUDA_R_32U") == 0)
-        return CUDA_R_32U;
-    else if (type_string.compare("CUDA_C_32U") == 0)
-        return CUDA_C_32U;
+static UPTKDataType get_cuda_library_type(std::string type_string) {
+    if (type_string.compare("UPTK_R_16F") == 0)
+        return UPTK_R_16F;
+    else if (type_string.compare("UPTK_C_16F") == 0)
+        return UPTK_C_16F;
+    else if (type_string.compare("UPTK_R_32F") == 0)
+        return UPTK_R_32F;
+    else if (type_string.compare("UPTK_C_32F") == 0)
+        return UPTK_C_32F;
+    else if (type_string.compare("UPTK_R_64F") == 0)
+        return UPTK_R_64F;
+    else if (type_string.compare("UPTK_C_64F") == 0)
+        return UPTK_C_64F;
+    else if (type_string.compare("UPTK_R_8I") == 0)
+        return UPTK_R_8I;
+    else if (type_string.compare("UPTK_C_8I") == 0)
+        return UPTK_C_8I;
+    else if (type_string.compare("UPTK_R_8U") == 0)
+        return UPTK_R_8U;
+    else if (type_string.compare("UPTK_C_8U") == 0)
+        return UPTK_C_8U;
+    else if (type_string.compare("UPTK_R_32I") == 0)
+        return UPTK_R_32I;
+    else if (type_string.compare("UPTK_C_32I") == 0)
+        return UPTK_C_32I;
+    else if (type_string.compare("UPTK_R_32U") == 0)
+        return UPTK_R_32U;
+    else if (type_string.compare("UPTK_C_32U") == 0)
+        return UPTK_C_32U;
     else
         throw std::runtime_error("Unknown CUDA datatype");
 }

@@ -52,15 +52,15 @@
 #include <vector>
 #include <gtest/gtest.h>   
 
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
+#include <UPTK_blas.h>
+#include <UPTK_runtime.h>
 
 #include "../utils/cublas_utils.h"
 
 using data_type = double;
 TEST(cublas_level_1,cublas_amax_example) {
-    cublasHandle_t cublasH = NULL;
-    cudaStream_t stream = NULL;
+    UPTKblasHandle_t cublasH = NULL;
+    UPTKStream_t stream = NULL;
 
     /*
      *   A = | 1.0 2.0 3.0 4.0 |
@@ -78,21 +78,21 @@ TEST(cublas_level_1,cublas_amax_example) {
     // printf("=====\n");
 
     /* step 1: create cublas handle, bind a stream */
-    CUBLAS_CHECK(cublasCreate(&cublasH));
+    CUBLAS_CHECK(UPTKblasCreate(&cublasH));
 
-    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamDefault));
-    CUBLAS_CHECK(cublasSetStream(cublasH, stream));
+    CUDA_CHECK(UPTKStreamCreateWithFlags(&stream, UPTKStreamDefault));
+    CUBLAS_CHECK(UPTKblasSetStream(cublasH, stream));
 
     /* step 2: copy data to device */
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
+    CUDA_CHECK(UPTKMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
 
-    CUDA_CHECK(cudaMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), cudaMemcpyHostToDevice,
+    CUDA_CHECK(UPTKMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), UPTKMemcpyHostToDevice,
                                stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasIdamax(cublasH, A.size(), d_A, incx, &result));
+    CUBLAS_CHECK(UPTKblasIdamax(cublasH, A.size(), d_A, incx, &result));
 
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+    CUDA_CHECK(UPTKStreamSynchronize(stream));
 
     /*
      *   result = 4
@@ -103,13 +103,13 @@ TEST(cublas_level_1,cublas_amax_example) {
     // printf("=====\n");
     
     /* free resources */
-    CUDA_CHECK(cudaFree(d_A));
+    CUDA_CHECK(UPTKFree(d_A));
 
-    CUBLAS_CHECK(cublasDestroy(cublasH));
+    CUBLAS_CHECK(UPTKblasDestroy(cublasH));
 
-    CUDA_CHECK(cudaStreamDestroy(stream));
+    CUDA_CHECK(UPTKStreamDestroy(stream));
 
-    CUDA_CHECK(cudaDeviceReset());
+    CUDA_CHECK(UPTKDeviceReset());
 
     //return EXIT_SUCCESS;
 }

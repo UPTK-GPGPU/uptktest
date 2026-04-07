@@ -50,8 +50,8 @@
 #include <cstdlib>
 #include <vector>
 
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
+#include <UPTK_blas.h>
+#include <UPTK_runtime.h>
 
 #include "../utils/cublas_utils.h"
 #include <gtest/gtest.h>   
@@ -60,8 +60,8 @@
 using data_type = double;
 
 TEST(cublas_level_1,cublas_rotmg_example){
-    cublasHandle_t cublasH = NULL;
-    cudaStream_t stream = NULL;
+    UPTKblasHandle_t cublasH = NULL;
+    UPTKStream_t stream = NULL;
 
     /*
      *   A = 1.0
@@ -100,15 +100,15 @@ TEST(cublas_level_1,cublas_rotmg_example){
     // printf("=====\n");
 
     /* step 1: create cublas handle, bind a stream */
-    CUBLAS_CHECK(cublasCreate(&cublasH));
+    CUBLAS_CHECK(UPTKblasCreate(&cublasH));
 
-    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUBLAS_CHECK(cublasSetStream(cublasH, stream));
+    CUDA_CHECK(UPTKStreamCreateWithFlags(&stream, UPTKStreamNonBlocking));
+    CUBLAS_CHECK(UPTKblasSetStream(cublasH, stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasDrotmg(cublasH, &A, &B, &X, &Y, param.data()));
+    CUBLAS_CHECK(UPTKblasDrotmg(cublasH, &A, &B, &X, &Y, param.data()));
 
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+    CUDA_CHECK(UPTKStreamSynchronize(stream));
 
     /*
      *   A = 3.10
@@ -147,14 +147,14 @@ TEST(cublas_level_1,cublas_rotmg_example){
     // printf("=====\n");
 
     /* free resources */
-    CUDA_CHECK(cudaFree(d_A));
-    CUDA_CHECK(cudaFree(d_B));
+    CUDA_CHECK(UPTKFree(d_A));
+    CUDA_CHECK(UPTKFree(d_B));
 
-    CUBLAS_CHECK(cublasDestroy(cublasH));
+    CUBLAS_CHECK(UPTKblasDestroy(cublasH));
 
-    CUDA_CHECK(cudaStreamDestroy(stream));
+    CUDA_CHECK(UPTKStreamDestroy(stream));
 
-    CUDA_CHECK(cudaDeviceReset());
+    CUDA_CHECK(UPTKDeviceReset());
 
     //return EXIT_SUCCESS;
 }

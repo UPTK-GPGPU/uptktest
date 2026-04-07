@@ -55,16 +55,16 @@
 #include <vector>
 #include <random>
 
-#include <cuda_runtime.h>
+#include <UPTK_runtime.h>
 #include <gtest/gtest.h>
-#include <cufft.h>
+#include <UPTK_fft.h>
 
 // CUDA API error checking
 #ifndef CUDA_RT_CALL
 #define CUDA_RT_CALL( call )                                                                                           \
     {                                                                                                                  \
-        auto status = static_cast<cudaError_t>( call );                                                                \
-        if ( status != cudaSuccess )                                                                                   \
+        auto status = static_cast<UPTKError_t>( call );                                                                \
+        if ( status != UPTKSuccess )                                                                                   \
             fprintf( stderr,                                                                                           \
                      "ERROR: CUDA RT call \"%s\" in line %d of file %s failed "                                        \
                      "with "                                                                                           \
@@ -72,7 +72,7 @@
                      #call,                                                                                            \
                      __LINE__,                                                                                         \
                      __FILE__,                                                                                         \
-                     cudaGetErrorString( status ),                                                                     \
+                     UPTKGetErrorString( status ),                                                                     \
                      status );                                                                                         \
     }
 #endif  // CUDA_RT_CALL
@@ -81,8 +81,8 @@
 #ifndef CUFFT_CALL
 #define CUFFT_CALL( call )                                                                                             \
     {                                                                                                                  \
-        auto status = static_cast<cufftResult>( call );                                                                \
-        if ( status != CUFFT_SUCCESS )                                                                                 \
+        auto status = static_cast<UPTKfftResult>( call );                                                                \
+        if ( status != UPTKFFT_SUCCESS )                                                                                 \
             fprintf( stderr,                                                                                           \
                      "ERROR: CUFFT call \"%s\" in line %d of file %s failed "                                          \
                      "with "                                                                                           \
@@ -94,17 +94,17 @@
     }
 #endif  // CUFFT_CALL
 
-// template <> struct traits<CUFFT_C2C> {
+// template <> struct traits<UPTKFFT_C2C> {
 //     // scalar type
 //     typedef float T;
 
 //     using input_host_type = std::complex<T>;
-//     using input_device_type = cufftComplex;
+//     using input_device_type = UPTKfftComplex;
 
 //     using output_host_type = std::complex<T>;
-//     using output_device_type = cufftComplex;
+//     using output_device_type = UPTKfftComplex;
 
-//     static constexpr cufftType_t transformType = CUDA_R_64F;
+//     static constexpr UPTKfftType_t transformType = UPTK_R_64F;
 
 //     template <typename RNG> inline static T rand(RNG &gen) {
 //         return make_cuFloatComplex((S)gen(), (S)gen());

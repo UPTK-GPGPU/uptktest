@@ -6,28 +6,28 @@
 //
 // ===---------------------------------------------------------------------===//
 
-#include "cufft.h"
+#include "UPTK_fft.h"
 #include "common.h"
 #include <cstring>
 #include <iostream>
 
 void r2cc2r_2d_inplace_make_plan()
 {
-  cufftHandle plan_fwd;
-  cufftCreate(&plan_fwd);
+  UPTKfftHandle plan_fwd;
+  UPTKfftCreate(&plan_fwd);
   float forward_idata_h[24];
   set_value(forward_idata_h, 4, 5, 6);
 
   float *data_d;
-  cudaMalloc(&data_d, sizeof(float) * 24);
-  cudaMemcpy(data_d, forward_idata_h, sizeof(float) * 24, cudaMemcpyHostToDevice);
+  UPTKMalloc(&data_d, sizeof(float) * 24);
+  UPTKMemcpy(data_d, forward_idata_h, sizeof(float) * 24, UPTKMemcpyHostToDevice);
 
   size_t workSize;
-  cufftMakePlan2d(plan_fwd, 4, 5, CUFFT_R2C, &workSize);
-  cufftExecR2C(plan_fwd, data_d, (float2 *)data_d);
-  cudaDeviceSynchronize();
+  UPTKfftMakePlan2d(plan_fwd, 4, 5, UPTKFFT_R2C, &workSize);
+  UPTKfftExecR2C(plan_fwd, data_d, (float2 *)data_d);
+  UPTKDeviceSynchronize();
   float2 forward_odata_h[12];
-  cudaMemcpy(forward_odata_h, data_d, sizeof(float) * 24, cudaMemcpyDeviceToHost);
+  UPTKMemcpy(forward_odata_h, data_d, sizeof(float) * 24, UPTKMemcpyDeviceToHost);
 
   float2 forward_odata_ref[12];
   forward_odata_ref[0] = float2{190, 0};
@@ -43,7 +43,7 @@ void r2cc2r_2d_inplace_make_plan()
   forward_odata_ref[10] = float2{0, 0};
   forward_odata_ref[11] = float2{0, 0};
 
-  cufftDestroy(plan_fwd);
+  UPTKfftDestroy(plan_fwd);
 
   compare(forward_odata_ref, forward_odata_h, 12);
   // std::cout << "forward_odata_h:" << std::endl;
@@ -51,13 +51,13 @@ void r2cc2r_2d_inplace_make_plan()
   // std::cout << "forward_odata_ref:" << std::endl;
   // print_values(forward_odata_ref, 12)
 
-  cufftHandle plan_bwd;
-  cufftCreate(&plan_bwd);
-  cufftMakePlan2d(plan_bwd, 4, 5, CUFFT_C2R, &workSize);
-  cufftExecC2R(plan_bwd, (float2 *)data_d, data_d);
-  cudaDeviceSynchronize();
+  UPTKfftHandle plan_bwd;
+  UPTKfftCreate(&plan_bwd);
+  UPTKfftMakePlan2d(plan_bwd, 4, 5, UPTKFFT_C2R, &workSize);
+  UPTKfftExecC2R(plan_bwd, (float2 *)data_d, data_d);
+  UPTKDeviceSynchronize();
   float backward_odata_h[24];
-  cudaMemcpy(backward_odata_h, data_d, sizeof(float) * 24, cudaMemcpyDeviceToHost);
+  UPTKMemcpy(backward_odata_h, data_d, sizeof(float) * 24, UPTKMemcpyDeviceToHost);
 
   float backward_odata_ref[24];
   backward_odata_ref[0] = 0;
@@ -85,8 +85,8 @@ void r2cc2r_2d_inplace_make_plan()
   backward_odata_ref[22] = 380;
   backward_odata_ref[23] = 3.2492;
 
-  cudaFree(data_d);
-  cufftDestroy(plan_bwd);
+  UPTKFree(data_d);
+  UPTKfftDestroy(plan_bwd);
 
   std::vector<int> indices = {0, 1, 2, 3, 4,
                               6, 7, 8, 9, 10,
@@ -103,5 +103,5 @@ TEST(cufft_runable, r2cc2r_2d_inplace_make_plan)
 {
 #define FUNC r2cc2r_2d_inplace_make_plan
   FUNC();
-  cudaDeviceSynchronize();
+  UPTKDeviceSynchronize();
 }

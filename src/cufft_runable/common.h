@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "cuda_runtime.h"
+#include "UPTK_runtime.h"
 #include <iostream>
 #include <vector>
 #include <gtest/gtest.h>

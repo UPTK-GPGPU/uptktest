@@ -58,7 +58,7 @@ message (STATUS "ROCM_PATH: ${ROCM_PATH}")
 # Now simply link against gtest or gtest_main as needed. Eg
 set(TEST_SOURCE_FILES "")
 add_subdirectory(src)
-cuda_add_executable(cudamocker_test ${TEST_SOURCE_FILES})
+cuda_add_executable(uptk_test ${TEST_SOURCE_FILES})
 
 # if (EXISTS "${GTEST_INSTALL}/lib64/libgtest.a")
 #    target_link_libraries(cudamocker_test ${GTEST_INSTALL}/lib64/libgtest.a)
@@ -67,6 +67,6 @@ cuda_add_executable(cudamocker_test ${TEST_SOURCE_FILES})
 # endif()
 
 
-target_link_libraries(cudamocker_test pthread cudart cuda gtest cublas cusolver cusparse cudnn cufft nvrtc UPTKrt)
+target_link_libraries(uptk_test pthread gtest UPTKfft UPTKblas UPTKrt UPTKnccl)
 
 
