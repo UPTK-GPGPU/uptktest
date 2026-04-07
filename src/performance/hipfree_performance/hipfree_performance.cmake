@@ -1,0 +1,36 @@
+message(STATUS "include hipfree test case")
+set(PERFORMANCE_HIPFREE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/performance/hipfree_performance)
+
+set(PERFORMANCE_HIPFREE_TEST_FILES 
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_1.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_2.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_3.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_4.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_5.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_6.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_7.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_8.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_9.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_10.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_11.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_12.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_13.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_14.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_15.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_16.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_17.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_18.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_19.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_20.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_21.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_22.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_23.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_24.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_25.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_26.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_27.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_28.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_29.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_30.cpp
+  ${PERFORMANCE_HIPFREE_DIR}/hipfree_31.cpp
+)
