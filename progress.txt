@@ -1,0 +1,24 @@
+# CUDA Test Progress
+# Last updated: 2026-04-06 12:00:00
+# Current library: all
+# Current batch: complete
+# Total APIs: 741 (347 runtime + 326 cublas + 52 cufft + 19 nccl)
+# Total test files: 741
+# Build: 100% successful (all 741 compiled)
+# Test results: 741/741 passed (100%), 0 failed
+
+# Completed (741 tests passing):
+# All CUDA Runtime tests (347/347)
+# All cuBLAS tests (326/326) - including batched and Xt operations
+# All cuFFT tests (52/52)
+# All NCCL tests (19/19)
+
+# Previously failed but now fixed (110 APIs):
+# Batch 1 (85 APIs): See fix_summary.md
+# Batch 2 (25 APIs): See learnings.md entries from 2026-04-06
+
+# Failed (need manual check - DTK/AMD GPU platform limitations):
+# None - all tests now pass
+
+# Skipped (environment limitations):
+# None

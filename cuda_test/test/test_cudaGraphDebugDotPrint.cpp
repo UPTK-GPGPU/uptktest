@@ -1,0 +1,53 @@
+#include <cuda_runtime.h>
+#include <UPTK_runtime.h>
+#include <stdio.h>
+
+#define CHECK_CUDA(call) \
+    do { \
+        UPTKError_t err = call; \
+        if (err != UPTKSuccess) { \
+            printf("CUDA error at %s:%d: %s\n", __FILE__, __LINE__, \
+                   UPTKGetErrorString(err)); \
+            return 1; \
+        } \
+    } while (0)
+
+int main() {
+    int deviceCount;
+    UPTKGetDeviceCount(&deviceCount);
+    if (deviceCount == 0) {
+        printf("test_skip: no CUDA device available\n");
+        return 0;
+    }
+    UPTKSetDevice(0);
+
+    // Scenario 1: Basic debug dot print to a temp file
+    {
+        UPTKGraph_t graph;
+        CHECK_CUDA(UPTKGraphCreate(&graph, 0));
+
+        UPTKGraphNode_t emptyNode;
+        CHECK_CUDA(UPTKGraphAddEmptyNode(&emptyNode, graph, NULL, 0));
+
+        CHECK_CUDA(UPTKGraphDebugDotPrint(graph, "/tmp/graph_debug.dot", 0));
+
+        CHECK_CUDA(UPTKGraphDestroy(graph));
+    }
+
+    // Scenario 2: Debug dot print with flags
+    {
+        UPTKGraph_t graph;
+        CHECK_CUDA(UPTKGraphCreate(&graph, 0));
+
+        UPTKGraphNode_t node1, node2;
+        CHECK_CUDA(UPTKGraphAddEmptyNode(&node1, graph, NULL, 0));
+        CHECK_CUDA(UPTKGraphAddEmptyNode(&node2, graph, &node1, 1));
+
+        CHECK_CUDA(UPTKGraphDebugDotPrint(graph, "/tmp/graph_debug2.dot", UPTKGraphDebugDotFlagsVerbose));
+
+        CHECK_CUDA(UPTKGraphDestroy(graph));
+    }
+
+    printf("test_cudaGraphDebugDotPrint PASS\n");
+    return 0;
+}

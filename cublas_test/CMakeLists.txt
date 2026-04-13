@@ -1,0 +1,11 @@
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I$ENV{ROCM_PATH}/cuda/cuda-11/include")
+
+file(GLOB TEST_SOURCES "test/test_*.cpp")
+foreach(test_src ${TEST_SOURCES})
+    get_filename_component(test_name ${test_src} NAME_WE)
+    add_executable(${test_name} ${test_src})
+    target_include_directories(${test_name} PRIVATE $ENV{ROCM_PATH}/cuda/cuda-11/include)
+    target_link_libraries(${test_name} ${CUDA_LIBRARIES} ${CUBLAS_LIBRARY} UPTKrt rt UPTKblas)
+    #target_link_libraries(UPTKrt cudart cuda pthread rt)
+    add_test(NAME ${test_name} COMMAND ${test_name})
+endforeach()
