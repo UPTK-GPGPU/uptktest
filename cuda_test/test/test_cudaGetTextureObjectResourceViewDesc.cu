@@ -1,0 +1,65 @@
+#include <cuda_runtime.h>
+#include <UPTK_runtime.h>
+#include <stdio.h>
+
+#define CHECK_CUDA(call) \
+    do { \
+        UPTKError_t err = call; \
+        if (err != UPTKSuccess) { \
+            printf("CUDA error at %s:%d: %s\n", __FILE__, __LINE__, \
+                   UPTKGetErrorString(err)); \
+            return 1; \
+        } \
+    } while (0)
+
+int main() {
+    int deviceCount;
+    UPTKGetDeviceCount(&deviceCount);
+    if (deviceCount == 0) {
+        printf("test_skip: no CUDA device available\n");
+        return 0;
+    }
+    UPTKSetDevice(0);
+
+    // Scenario 1: Create texture object without resource view and get descriptor
+    float *d_data = NULL;
+    CHECK_CUDA(UPTKMalloc((void **)&d_data, 64 * 64 * sizeof(float)));
+
+    UPTKResourceDesc resDesc = {};
+    resDesc.resType = UPTKResourceTypePitch2D;
+    resDesc.res.pitch2D.devPtr = d_data;
+    resDesc.res.pitch2D.desc = UPTKCreateChannelDesc(32, 0, 0, 0, UPTKChannelFormatKindFloat);;
+    resDesc.res.pitch2D.width = 64;
+    resDesc.res.pitch2D.height = 64;
+    resDesc.res.pitch2D.pitchInBytes = 64 * sizeof(float);
+
+    UPTKTextureDesc texDesc = {};
+    texDesc.addressMode[0] = UPTKAddressModeClamp;
+    texDesc.addressMode[1] = UPTKAddressModeClamp;
+    texDesc.filterMode = UPTKFilterModePoint;
+    texDesc.readMode = UPTKReadModeElementType;
+    texDesc.normalizedCoords = 0;
+
+    UPTKTextureObject_t texObj = 0;
+    CHECK_CUDA(UPTKCreateTextureObject(&texObj, &resDesc, &texDesc, NULL));
+
+    // Get resource view descriptor - should succeed even with NULL resViewDesc
+    UPTKResourceViewDesc retrievedViewDesc = {};
+    CHECK_CUDA(UPTKGetTextureObjectResourceViewDesc(&retrievedViewDesc, texObj));
+    printf("Resource view descriptor retrieved successfully\n");
+
+    // Scenario 2: Create another texture object and verify API call path
+    UPTKTextureObject_t texObj2 = 0;
+    CHECK_CUDA(UPTKCreateTextureObject(&texObj2, &resDesc, &texDesc, NULL));
+
+    UPTKResourceViewDesc retrievedViewDesc2 = {};
+    CHECK_CUDA(UPTKGetTextureObjectResourceViewDesc(&retrievedViewDesc2, texObj2));
+    printf("Second resource view descriptor retrieved successfully\n");
+
+    CHECK_CUDA(UPTKDestroyTextureObject(texObj));
+    CHECK_CUDA(UPTKDestroyTextureObject(texObj2));
+    CHECK_CUDA(UPTKFree(d_data));
+
+    printf("test_cudaGetTextureObjectResourceViewDesc PASS\n");
+    return 0;
+}
