@@ -5,7 +5,10 @@ import sys
 import subprocess
 
 # ===================== 全局配置 =====================
-TOTAL_API_BASE = 347
+TOTAL_API_RUNTIME = 347
+TOTAL_API_CUBLAS = 326
+TOTAL_API_CUFFT = 52
+TOTAL_API_NCCL = 19
 RUNTIME_DIR = "build/cuda_test"
 CUBLAS_DIR  = "build/cublas_test"
 CUFFT_DIR   = "build/cufft_test"
@@ -811,7 +814,16 @@ def run_module(module_name, test_dir, test_list):
     print(f"✅ 通过：{passed}")
     print(f"❌ 失败：{len(failed)}")
     print(f"📊 通过率：{passed/total*100:.2f}%" if total else "📊 通过率：0%")
-    print(f"📈 覆盖率(基于347)：{passed/TOTAL_API_BASE*100:.2f}%")
+    if mode == "runtime":
+        print(f"📈 覆盖率(based on 365):{passed/365*100:.2f}%")
+    elif mode == "cublas":
+        print(f"📈 覆盖率(based on 343):{passed/343*100:.2f}%")
+    elif mode == "cufft":
+        print(f"📈 覆盖率(based on 53):{passed/53*100:.2f}%")
+    elif mode == "nccl":
+        print(f"📈 覆盖率(based on 19):{passed/TOTAL_API_NCCL*100:.2f}%")
+    else:
+        sys.exit(1)
     print("=" * 70)
 
     if failed:

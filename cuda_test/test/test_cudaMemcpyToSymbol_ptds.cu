@@ -32,7 +32,7 @@ int main() {
     // Verify by copying back
     int h_result[64];
     memset(h_result, 0, sizeof(h_result));
-    CHECK_CUDA(UPTKMemcpyFromSymbol_ptds(&h_result, &d_symbol, 64 * sizeof(int), 0, UPTKMemcpyHostToDevice));
+    CHECK_CUDA(UPTKMemcpyFromSymbol_ptds(&h_result, &d_symbol, 64 * sizeof(int)));
 
     int pass = 1;
     for (int i = 0; i < 64; i++) {
