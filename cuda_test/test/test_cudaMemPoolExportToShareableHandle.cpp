@@ -35,7 +35,7 @@ int main() {
 
     int fd = -1;
     UPTKError_t err = UPTKMemPoolExportToShareableHandle(
-        (void*)fd, memPool, UPTKMemHandleTypePosixFileDescriptor, 0);
+        (void*)&fd, memPool, UPTKMemHandleTypePosixFileDescriptor, 0);
     if (err == UPTKSuccess) {
         printf("Exported handle successfully\n");
         close(fd);
