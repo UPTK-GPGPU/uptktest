@@ -39,7 +39,7 @@ int main() {
     if (err == UPTKSuccess) {
         UPTKMemPool_t importedPool;
         err = UPTKMemPoolImportFromShareableHandle(
-            &importedPool, (void*)&fd, UPTKMemHandleTypePosixFileDescriptor, 0);
+            &importedPool, (void*)fd, UPTKMemHandleTypePosixFileDescriptor, 0);
         if (err == UPTKSuccess) {
             // Note: destroying imported pool may cause issues on DTK
             // Just verify the import succeeded

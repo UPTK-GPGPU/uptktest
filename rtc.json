@@ -1,0 +1,19 @@
+{
+  "UPTKrtcAddNameExpression",
+  "UPTKrtcCompileProgram",
+  "UPTKrtcCreateProgram",
+  "UPTKrtcDestroyProgram",
+  "UPTKrtcGetCUBIN",
+  "UPTKrtcGetCUBINSize",
+  "UPTKrtcGetErrorString",
+  "UPTKrtcGetLoweredName",
+  "UPTKrtcGetNumSupportedArchs",
+  "UPTKrtcGetNVVM",
+  "UPTKrtcGetNVVMSize",
+  "UPTKrtcGetProgramLog",
+  "UPTKrtcGetProgramLogSize",
+  "UPTKrtcGetPTX",
+  "UPTKrtcGetPTXSize",
+  "UPTKrtcGetSupportedArchs",
+  "UPTKrtcVersion"
+}
