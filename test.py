@@ -5,7 +5,8 @@ import re
 
 def run_ctest_for_type(lib_type):
     json_file = f"{lib_type}.json"
-    test_dir = os.path.abspath(os.path.join(os.getcwd(), "build", f"{lib_type}_test"))
+    #test_dir = os.path.abspath(os.path.join(os.getcwd(), "build", f"{lib_type}_test"))
+    test_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "build", "test", f"{lib_type}_test"))
 
     if not os.path.exists(json_file):
         print(f"❌ 未找到函数列表：{json_file}")
@@ -83,6 +84,10 @@ def run_all():
     run_ctest_for_type("cublas")
     run_ctest_for_type("nccl")
     run_ctest_for_type("cufft")
+    run_ctest_for_type("driver")
+    run_ctest_for_type("sparse")
+    run_ctest_for_type("rand")
+    run_ctest_for_type("rtc")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -91,13 +96,17 @@ if __name__ == "__main__":
         print("  python test.py cublas")
         print("  python test.py nccl")
         print("  python test.py cufft")
+        print("  python test.py driver")
+        print("  python test.py sparse")
+        print("  python test.py rand")
+        print("  python test.py rtc")
         print("  python test.py all")
         sys.exit(1)
 
     mode = sys.argv[1]
     if mode == "all":
         run_all()
-    elif mode in ["cuda", "cublas", "nccl", "cufft"]:
+    elif mode in ["cuda", "cublas", "nccl", "cufft", "driver", "sparse", "rand", "rtc"]:
         run_ctest_for_type(mode)
     else:
         print("不支持的类型！")
