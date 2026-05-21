@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-unset(CMAKE_C_COMPILER CACHE)
-unset(CMAKE_CXX_COMPILER CACHE)
-project(cuda_apis_test LANGUAGES)
+project(cuda_apis_test LANGUAGES C CXX)
 
 find_package(CUDA REQUIRED)
 message(STATUS "ROCM_PATH = $ENV{ROCM_PATH}")
@@ -21,12 +19,10 @@ link_directories($ENV{ROCM_PATH}/cuda/cuda-11/lib64)
 enable_testing()
 
 # 子目录编译（内部会自己生成可执行文件）
-
 add_subdirectory(cuda_test)
 add_subdirectory(cublas_test)
 add_subdirectory(cufft_test)
 add_subdirectory(nccl_test)
-
 add_subdirectory(driver_test)
 add_subdirectory(sparse_test)
 add_subdirectory(rand_test)

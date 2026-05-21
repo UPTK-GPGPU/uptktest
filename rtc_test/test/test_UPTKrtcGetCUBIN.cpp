@@ -1,7 +1,8 @@
-﻿/*
+/*
  * Auto-generated smoke test for UPTKrtcGetCUBIN (rtc_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rtc_test/generate_rtc_tests.ps1
  */
+#include <cuda_runtime.h>
 #include <UPTK_rtc.h>
 #include <stdio.h>
 #include <stdlib.h>

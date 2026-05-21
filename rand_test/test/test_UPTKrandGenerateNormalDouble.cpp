@@ -1,9 +1,9 @@
-﻿/*
+/*
  * Auto-generated smoke test for UPTKrandGenerateNormalDouble (rand_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rand_test/generate_rand_tests.ps1
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdint.h>
 #include <stdio.h>
 

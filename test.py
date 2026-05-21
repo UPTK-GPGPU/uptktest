@@ -6,7 +6,7 @@ import re
 def run_ctest_for_type(lib_type):
     json_file = f"{lib_type}.json"
     #test_dir = os.path.abspath(os.path.join(os.getcwd(), "build", f"{lib_type}_test"))
-    test_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "build", "test", f"{lib_type}_test"))
+    test_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "build", f"{lib_type}_test"))
 
     if not os.path.exists(json_file):
         print(f"❌ 未找到函数列表：{json_file}")

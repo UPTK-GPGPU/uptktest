@@ -1,8 +1,9 @@
-﻿/*
+/*
  * Auto-generated smoke test for UPTKrandGetProperty (rand_fun_convert.cpp).
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime_api.h>
+#include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdio.h>
 
 int main(void)

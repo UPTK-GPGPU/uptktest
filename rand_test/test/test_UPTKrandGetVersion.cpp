@@ -1,6 +1,7 @@
-﻿/*
+/*
  * Auto-generated smoke test for UPTKrandGetVersion (rand_fun_convert.cpp).
  */
+#include <cuda_runtime.h>
 #include <UPTK_rand.h>
 #include <stdio.h>
 
