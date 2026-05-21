@@ -17,6 +17,7 @@ function Get-CppForRtcFunction([string]$fname) {
  * Auto-generated smoke test for $fname (rtc_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rtc_test/generate_rtc_tests.ps1
  */
+#include <cuda_runtime.h>
 "@
 
     switch ($fname) {

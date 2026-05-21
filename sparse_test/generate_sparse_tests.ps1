@@ -290,8 +290,8 @@ $matDestroy    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
  * Auto-generated smoke test for $fname (sparse_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/sparse_test/generate_sparse_tests.ps1
  */
-#include <UPTK_sparse.h>
 #include <cuda_runtime.h>
+#include <UPTK_sparse.h>
 #include <stdint.h>
 #include <stdio.h>
 

@@ -315,8 +315,8 @@ $extraDecl
  * Auto-generated smoke test for $fname (rand_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rand_test/generate_rand_tests.ps1
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -341,8 +341,8 @@ $tearSection
  * Auto-generated smoke test for $fname (rand_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rand_test/generate_rand_tests.ps1
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -383,8 +383,8 @@ int main(void)
  * Auto-generated smoke test for $fname (rand_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/rand_test/generate_rand_tests.ps1
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -424,6 +424,7 @@ int main(void)
 /*
  * Auto-generated smoke test for $fname (rand_fun_convert.cpp).
  */
+#include <cuda_runtime.h>
 #include <UPTK_rand.h>
 #include <stdio.h>
 
@@ -443,8 +444,9 @@ int main(void)
 /*
  * Auto-generated smoke test for $fname (rand_fun_convert.cpp).
  */
-#include <UPTK_rand.h>
 #include <cuda_runtime_api.h>
+#include <cuda_runtime.h>
+#include <UPTK_rand.h>
 #include <stdio.h>
 
 int main(void)
