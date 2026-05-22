@@ -201,9 +201,12 @@ int main(void)
         return 0;
     }
 
-    err = UPFuncGetAttribute(&local_pi, (UPTKfunction_attribute)0, kern);
-
-    printf("UPFuncGetAttribute -> %d\n", (int)err);
+    if (!kern) {
+        printf("test_skip: UPFuncGetAttribute needs valid function\n");
+    } else {
+        err = UPFuncGetAttribute(&local_pi, (UPTKfunction_attribute)0, kern);
+        printf("UPFuncGetAttribute -> %d\n", (int)err);
+    }
 
     driver_smoke_teardown(
         dev,

@@ -51,9 +51,10 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -81,18 +82,18 @@ int main(void)
     err = UPTKsparseCreateMatDescr(&descrA);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseCcsr2csru UPTKsparseCreateMatDescr(descrA) failed\n");
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
         return 0;
     }
     err = UPTKsparseSetMatIndexBase(descrA, UPTKSPARSE_INDEX_BASE_ZERO);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseCcsr2csru SetMatIndexBase(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
     }
     err = UPTKsparseSetMatType(descrA, UPTKSPARSE_MATRIX_TYPE_GENERAL);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseCcsr2csru SetMatType(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
     }
 
     err = UPTKsparseCcsr2csru(sparse_handle, 0, 0, 0, descrA, (cuComplex*)dev_scratch, (const int*)dev_scratch, (int*)dev_scratch, (csru2csrInfo_t)0, (void*)nullptr);
@@ -102,7 +103,7 @@ int main(void)
 
 
     if (descrA) UPTKsparseDestroyMatDescr(descrA);
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
     printf("test_UPTKsparseCcsr2csru PASS\n");
     return 0;
 }

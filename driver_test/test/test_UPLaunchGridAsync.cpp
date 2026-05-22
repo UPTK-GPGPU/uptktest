@@ -201,9 +201,12 @@ int main(void)
         return 0;
     }
 
-    err = UPLaunchGridAsync(kern, 0, 0, stream);
-
-    printf("UPLaunchGridAsync -> %d\n", (int)err);
+    if (!kern) {
+        printf("test_skip: UPLaunchGridAsync needs valid function\n");
+    } else {
+        err = UPLaunchGridAsync(kern, 0, 0, stream);
+        printf("UPLaunchGridAsync -> %d\n", (int)err);
+    }
 
     driver_smoke_teardown(
         dev,
