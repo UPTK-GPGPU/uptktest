@@ -51,9 +51,10 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -81,18 +82,18 @@ int main(void)
     err = UPTKsparseCreateMatDescr(&descrA);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSbsrmm UPTKsparseCreateMatDescr(descrA) failed\n");
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
         return 0;
     }
     err = UPTKsparseSetMatIndexBase(descrA, UPTKSPARSE_INDEX_BASE_ZERO);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSbsrmm SetMatIndexBase(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
     }
     err = UPTKsparseSetMatType(descrA, UPTKSPARSE_MATRIX_TYPE_GENERAL);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSbsrmm SetMatType(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
     }
 
     err = UPTKsparseSbsrmm(sparse_handle, (UPTKsparseDirection_t)UPTKSPARSE_DIRECTION_ROW, (UPTKsparseOperation_t)UPTKSPARSE_OPERATION_NON_TRANSPOSE, (UPTKsparseOperation_t)UPTKSPARSE_OPERATION_NON_TRANSPOSE, 0, 0, 0, 0, (const float*)dev_scratch, descrA, (const float*)dev_scratch, (const int*)dev_scratch, (const int*)dev_scratch, 0, (const float*)dev_scratch, 0, (const float*)dev_scratch, (float*)dev_scratch, 0);
@@ -102,7 +103,7 @@ int main(void)
 
 
     if (descrA) UPTKsparseDestroyMatDescr(descrA);
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
     printf("test_UPTKsparseSbsrmm PASS\n");
     return 0;
 }

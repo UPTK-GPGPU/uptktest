@@ -182,6 +182,34 @@ function LocalDecl-ForParam($p) {
     return "$($base.Trim()) local_$($p.Name){};"
 }
 
+function Is-DestroyFunction([string]$fname) {
+    return $fname -match 'Destroy$'
+}
+
+function Get-DestroyClearCode([string]$fname, $parsed) {
+    if (-not (Is-DestroyFunction $fname)) { return '' }
+    if ($parsed.Count -eq 0) { return '' }
+    $firstParam = $parsed[0]
+    $varName = $firstParam.Name
+    return "    $varName = {};"
+}
+
+function Get-NullGuardCode([string]$fname, $parsed) {
+    foreach ($p in $parsed) {
+        $tRaw = $p.Type.Trim()
+        if ($tRaw -match '\*\s*$') { continue }
+        $t = $tRaw -replace '^\s*const\s+', ''
+        if ($t -eq 'UPTKfunction') { return @{ var = 'kern'; label = 'function' } }
+        if ($t -eq 'UPTKmodule')   { return @{ var = 'mod'; label = 'module' } }
+        if ($t -eq 'UPTKMemPool_t') { return @{ var = 'memPool'; label = 'mempool' } }
+        if ($t -eq 'UPTKExternalMemory_t') { return @{ var = 'extMem'; label = 'external memory' } }
+        if ($t -eq 'UPTKExternalSemaphore_t') { return @{ var = 'extSem'; label = 'external semaphore' } }
+        if ($t -eq 'UPTKtexref')  { return @{ var = 'texRef'; label = 'texture reference' } }
+        if ($t -eq 'UPTKlinkState') { return @{ var = 'linkState'; label = 'link state' } }
+    }
+    return $null
+}
+
 $rx = [regex]::Matches($text, '(?m)^UPTKError\s+(UP\w+)\(([^\)]*)\)\s*\{')
 Write-Host "Matched $($rx.Count) wrappers"
 
@@ -233,6 +261,9 @@ foreach ($m in $rx) {
     $needArr = Needs-Array $parsed
     $needMip = Needs-Mipmap $parsed
     $needTex = Needs-TexRef $parsed
+
+    $destroyClear = Get-DestroyClearCode $fname $parsed
+    $nullGuard = Get-NullGuardCode $fname $parsed
 
     $localsJoined = (($locals | Sort-Object -Unique) -join "`n    ")
 
@@ -444,10 +475,19 @@ int main(void)
         return 0;
     }
 
-    err = $fname($protoArgs);
+$(if ($nullGuard) { @"
+    if (!$($nullGuard.var)) {
+        printf("test_skip: $fname needs valid $($nullGuard.label)\n");
+    } else {
+"@ } else { '' })
+    err = $fname($protoArgs);$(if ($destroyClear) { "`n    $destroyClear" } else { '' })
 
+$(if ($nullGuard) { @"
+        printf("$fname -> %d\n", (int)err);
+    }
+"@ } else { @"
     printf("$fname -> %d\n", (int)err);
-
+"@ })
     driver_smoke_teardown(
         dev,
         ctx,

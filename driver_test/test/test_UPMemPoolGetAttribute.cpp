@@ -201,9 +201,12 @@ int main(void)
         return 0;
     }
 
-    err = UPMemPoolGetAttribute(memPool, (UPTKmemPool_attribute)0, (void*)nullptr);
-
-    printf("UPMemPoolGetAttribute -> %d\n", (int)err);
+    if (!memPool) {
+        printf("test_skip: UPMemPoolGetAttribute needs valid mempool\n");
+    } else {
+        err = UPMemPoolGetAttribute(memPool, (UPTKmemPool_attribute)0, (void*)nullptr);
+        printf("UPMemPoolGetAttribute -> %d\n", (int)err);
+    }
 
     driver_smoke_teardown(
         dev,

@@ -3,9 +3,9 @@
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/driver_test/generate_driver_tests.ps1
  */
 #include <cuda.h>
-#include "driver_smoke_types.h"
+#include "../driver_smoke_types.h"
 #include <UPTK.h>
-#include "driver_smoke_decls.h"
+#include "../driver_smoke_decls.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -142,8 +142,90 @@ static void driver_smoke_teardown(
         UPStreamDestroy(stream);
     }
     UPCtxSetCurrent((UPTKcontext)(uintptr_t)0);
+    return;
 }
 
+/*int main(void)
+{
+    UPTKdevice dev{};
+    UPTKcontext ctx{};
+    UPTKStream_t stream{};
+    UPTKdeviceptr dptr{};
+    UPTKEvent_t evt{};
+    UPTKGraph_t graph{};
+    UPTKGraphNode_t graphNode{};
+    UPTKGraphExec_t graphExec{};
+    UPTKarray arr{};
+    UPTKMipmappedArray_t mipmap{};
+    UPTKmodule mod{};
+    UPTKfunction kern{};
+    UPTKtexref texRef{};
+    UPTKExternalMemory_t extMem{};
+    UPTKExternalSemaphore_t extSem{};
+    UPTKGraphicsResource_t gfxRes{};
+    UPTKsurfref surfRef{};
+    UPTKSurfaceObject_t surfObj{};
+    UPTKTextureObject_t texObj{};
+    UPTKMemPool_t memPool{};
+    UPTKUserObject_t userObj{};
+    UPTKlinkState linkState{};
+    UPTKStreamCaptureStatus captureStatus{};
+    UPTK_ARRAY3D_DESCRIPTOR local_pAllocateArray{};
+    UPTKarray local_pHandle{};
+
+    const int graph_level = -1;
+    const bool need_evt = false;
+    const bool need_arr = false;
+    const bool need_mipmap = false;
+    const bool need_tex = false;
+
+    UPTKError err = driver_smoke_setup(
+        &dev,
+        &ctx,
+        &stream,
+        &dptr,
+        &evt,
+        &graph,
+        &graphNode,
+        &graphExec,
+        &arr,
+        &mipmap,
+        &texRef,
+        graph_level,
+        need_evt,
+        need_arr,
+        need_mipmap,
+        need_tex);
+
+    if (err != UPTKSuccess) {
+        printf("test_skip: UPArray3DCreate setup failed (%d)\n", (int)err);
+        return 0;
+    }
+
+    err = UPArray3DCreate(&local_pHandle, &local_pAllocateArray);
+
+    printf("UPArray3DCreate -> %d\n", (int)err);
+
+    driver_smoke_teardown(
+        dev,
+        ctx,
+        stream,
+        dptr,
+        evt,
+        graph,
+        graphExec,
+        arr,
+        mipmap,
+        texRef,
+        graph_level,
+        need_evt,
+        need_arr,
+        need_mipmap,
+        need_tex);
+
+    printf("test_UPArray3DCreate PASS\n");
+    return 0;
+}*/
 
 int main(void)
 {
@@ -170,7 +252,17 @@ int main(void)
     UPTKUserObject_t userObj{};
     UPTKlinkState linkState{};
     UPTKStreamCaptureStatus captureStatus{};
+
     UPTK_ARRAY3D_DESCRIPTOR local_pAllocateArray{};
+    local_pAllocateArray.Width = 16;
+    local_pAllocateArray.Height = 16;
+    local_pAllocateArray.Depth = 1;
+    //local_pAllocateArray.Format = (UPTKarray_format)CU_AD_FORMAT_UNSIGNED_INT8;
+    local_pAllocateArray.Format = CU_AD_FORMAT_UNSIGNED_INT8;
+    //local_pAllocateArray.Format = static_cast<UPTKarray_format>(static_cast<int>(CU_AD_FORMAT_UNSIGNED_INT8));;
+    local_pAllocateArray.NumChannels = 1;
+    local_pAllocateArray.Flags = 0;
+    
     UPTKarray local_pHandle{};
 
     const int graph_level = -1;

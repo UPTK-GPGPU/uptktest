@@ -51,9 +51,10 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -86,7 +87,7 @@ int main(void)
     printf("UPTKsparseSpGEMMreuse_workEstimation -> %d\n", (int)err);
 
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
     printf("test_UPTKsparseSpGEMMreuse_workEstimation PASS\n");
     return 0;
 }

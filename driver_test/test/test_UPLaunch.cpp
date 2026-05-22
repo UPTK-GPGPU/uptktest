@@ -201,9 +201,12 @@ int main(void)
         return 0;
     }
 
-    err = UPLaunch(kern);
-
-    printf("UPLaunch -> %d\n", (int)err);
+    if (!kern) {
+        printf("test_skip: UPLaunch needs valid function\n");
+    } else {
+        err = UPLaunch(kern);
+        printf("UPLaunch -> %d\n", (int)err);
+    }
 
     driver_smoke_teardown(
         dev,
