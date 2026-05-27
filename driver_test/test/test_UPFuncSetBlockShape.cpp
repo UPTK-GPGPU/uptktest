@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!kern) {
-        printf("test_skip: UPFuncSetBlockShape needs valid function\n");
-    } else {
-        err = UPFuncSetBlockShape(kern, 0, 0, 0);
-        printf("UPFuncSetBlockShape -> %d\n", (int)err);
-    }
+    err = UPFuncSetBlockShape(kern, 0, 0, 0);
+
+    printf("UPFuncSetBlockShape -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

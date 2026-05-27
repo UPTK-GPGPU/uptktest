@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!kern) {
-        printf("test_skip: UPFuncGetModule needs valid function\n");
-    } else {
-        err = UPFuncGetModule(&local_hmod, kern);
-        printf("UPFuncGetModule -> %d\n", (int)err);
-    }
+    err = UPFuncGetModule(&local_hmod, kern);
+
+    printf("UPFuncGetModule -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

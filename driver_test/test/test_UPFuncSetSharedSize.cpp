@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!kern) {
-        printf("test_skip: UPFuncSetSharedSize needs valid function\n");
-    } else {
-        err = UPFuncSetSharedSize(kern, 0u);
-        printf("UPFuncSetSharedSize -> %d\n", (int)err);
-    }
+    err = UPFuncSetSharedSize(kern, 0u);
+
+    printf("UPFuncSetSharedSize -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -82,9 +81,8 @@ int main(void)
 
     printf("UPTKsparseDestroy -> %d\n", (int)err);
 
-    sparse_handle = (UPTKsparseHandle_t)(uintptr_t)0;
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 0);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseDestroy PASS\n");
     return 0;
 }

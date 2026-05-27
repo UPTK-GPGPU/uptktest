@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!mod) {
-        printf("test_skip: UPModuleUnload needs valid module\n");
-    } else {
-        err = UPModuleUnload(mod);
-        printf("UPModuleUnload -> %d\n", (int)err);
-    }
+    err = UPModuleUnload(mod);
+
+    printf("UPModuleUnload -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!kern) {
-        printf("test_skip: UPLaunchKernel needs valid function\n");
-    } else {
-        err = UPLaunchKernel(kern, 0u, 0u, 0u, 0u, 0u, 0u, 0u, stream, (void**)nullptr, (void**)nullptr);
-        printf("UPLaunchKernel -> %d\n", (int)err);
-    }
+    err = UPLaunchKernel(kern, 0u, 0u, 0u, 0u, 0u, 0u, 0u, stream, (void**)nullptr, (void**)nullptr);
+
+    printf("UPLaunchKernel -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

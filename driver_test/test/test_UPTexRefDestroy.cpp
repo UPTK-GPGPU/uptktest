@@ -202,7 +202,6 @@ int main(void)
     }
 
     err = UPTexRefDestroy(texRef);
-    texRef = {};
 
     printf("UPTexRefDestroy -> %d\n", (int)err);
 

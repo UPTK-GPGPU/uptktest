@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -82,18 +81,18 @@ int main(void)
     err = UPTKsparseCreateMatDescr(&descrA);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseDbsrsm2_solve UPTKsparseCreateMatDescr(descrA) failed\n");
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
         return 0;
     }
     err = UPTKsparseSetMatIndexBase(descrA, UPTKSPARSE_INDEX_BASE_ZERO);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseDbsrsm2_solve SetMatIndexBase(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
     err = UPTKsparseSetMatType(descrA, UPTKSPARSE_MATRIX_TYPE_GENERAL);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseDbsrsm2_solve SetMatType(descrA)\n");
-        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr(descrA); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
 
     err = UPTKsparseDbsrsm2_solve(sparse_handle, (UPTKsparseDirection_t)UPTKSPARSE_DIRECTION_ROW, (UPTKsparseOperation_t)UPTKSPARSE_OPERATION_NON_TRANSPOSE, (UPTKsparseOperation_t)UPTKSPARSE_OPERATION_NON_TRANSPOSE, 0, 0, 0, (const double*)dev_scratch, descrA, (const double*)dev_scratch, (const int*)dev_scratch, (const int*)dev_scratch, 0, (bsrsm2Info_t)0, (const double*)dev_scratch, 0, (double*)dev_scratch, 0, (UPTKsparseSolvePolicy_t)UPTKSPARSE_SOLVE_POLICY_NO_LEVEL, (void*)nullptr);
@@ -103,7 +102,7 @@ int main(void)
 
 
     if (descrA) UPTKsparseDestroyMatDescr(descrA);
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseDbsrsm2_solve PASS\n");
     return 0;
 }

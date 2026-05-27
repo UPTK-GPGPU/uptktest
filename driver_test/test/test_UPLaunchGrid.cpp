@@ -201,12 +201,9 @@ int main(void)
         return 0;
     }
 
-    if (!kern) {
-        printf("test_skip: UPLaunchGrid needs valid function\n");
-    } else {
-        err = UPLaunchGrid(kern, 0, 0);
-        printf("UPLaunchGrid -> %d\n", (int)err);
-    }
+    err = UPLaunchGrid(kern, 0, 0);
+
+    printf("UPLaunchGrid -> %d\n", (int)err);
 
     driver_smoke_teardown(
         dev,

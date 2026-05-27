@@ -60,17 +60,7 @@ function Collect-SparseObjects($parsed) {
     $m = @{}
     foreach ($pp in $parsed) {
         $t = ($pp.Type.Trim() -replace '^\s*const\s+', '')
-
-        # Handle pointer-to-descriptor types (e.g. UPTKsparseSpMatDescr_t *spMatDescr)
-        # Declare as value type so we can take address with & (host stack, not device mem)
-        if ($t -match '^(.+)\s*\*\s*$') {
-            $baseType = $Matches[1].Trim()
-            if ($baseType -match 'Descr_t$') {
-                $m[$pp.Name] = $baseType
-            }
-            continue
-        }
-
+        if ($t -match '\*$') { continue }
         if ($t -eq 'UPTKsparseHandle_t') { continue }
         if ($t -eq 'UPTKsparseMatDescr_t') { continue }
         if ($t -match 'Descr_t$|ColorInfo_t$|Plan_t$') {
@@ -89,12 +79,7 @@ function Expr-ForParam($p) {
     if ($tRaw -match '^const\s+void\s*\*$') { return '(const void*)dev_scratch' }
     if ($tRaw -match '^const\s+void\s*\*\*$') { return '(const void**)nullptr' }
 
-    # Sparse descriptor output pointer types: host stack (&name), never device scratch
-    if ($tRaw -match 'UPTKsparseSpMatDescr_t\s*\*' -and $tRaw -notmatch '\*\*') { return "&$n" }
-    if ($tRaw -match 'UPTKsparseDnMatDescr_t\s*\*' -and $tRaw -notmatch '\*\*') { return "&$n" }
-    if ($tRaw -match 'UPTKsparseSpVecDescr_t\s*\*' -and $tRaw -notmatch '\*\*') { return "&$n" }
-
-    if ($tRaw -match 'UPTKsparseHandle_t\s*\*' -and $tRaw -notmatch '\*\*') { return '&sparse_handle' }
+    if ($tRaw -match '^UPTKsparseHandle_t\s*\*$') { return '&sparse_handle' }
 
     if ($tRaw.EndsWith('*')) {
         $isConst = $tRaw.TrimStart().StartsWith('const')
@@ -128,7 +113,7 @@ function Expr-ForParam($p) {
     if ($t -eq 'UPTKsparseDiagType_t') { return '(UPTKsparseDiagType_t)0' }
     if ($t -eq 'UPTKsparseFillMode_t') { return '(UPTKsparseFillMode_t)0' }
     if ($t -eq 'UPTKsparseFormat_t') { return '(UPTKsparseFormat_t)0' }
-    if ($t -eq 'UPTKsparseIndexType_t') { return '(UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I' }
+    if ($t -eq 'UPTKsparseIndexType_t') { return '(UPTKsparseIndexType_t)0' }
     if ($t -eq 'UPTKsparseMatrixType_t') { return '(UPTKsparseMatrixType_t)UPTKSPARSE_MATRIX_TYPE_GENERAL' }
     if ($t -eq 'UPTKsparseSpMatAttribute_t') { return '(UPTKsparseSpMatAttribute_t)0' }
     if ($t -eq 'UPTKDataType' -or $t -eq 'UPTKDataType_t') { return '(UPTKDataType_t)UPTK_R_32F' }
@@ -209,10 +194,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -247,107 +231,7 @@ foreach ($m in $rx) {
         $objDecls += "    $tp $k{};`n"
     }
 
-    # Ensure host descriptor variables exist for Create*/Get* smoke tests
-    if ($fname -match '^UPTKsparseCreate(Csr|Coo|Csc|BlockedEll)$' -and $objDecls -notmatch 'spMatDescr') {
-        $objDecls += "    UPTKsparseSpMatDescr_t spMatDescr{};`n"
-    }
-    if ($fname -eq 'UPTKsparseCreateDnMat' -and $objDecls -notmatch 'dnMatDescr') {
-        $objDecls += "    UPTKsparseDnMatDescr_t dnMatDescr{};`n"
-    }
-    if ($fname -eq 'UPTKsparseCreateSpVec' -and $objDecls -notmatch 'spVecDescr') {
-        $objDecls += "    UPTKsparseSpVecDescr_t spVecDescr{};`n"
-    }
-    if ($fname -match '^(UPTKsparse(Csr|Coo|BlockedEll|SpMatFormat)Get|UPTKsparseCsr2cscEx2|UPTKsparseCsr2cscEx2_bufferSize)$' -and $objDecls -notmatch 'spMatDescr') {
-        $objDecls += "    UPTKsparseSpMatDescr_t spMatDescr{};`n"
-    }
-    if ($fname -eq 'UPTKsparseDnMatGet' -and $objDecls -notmatch 'dnMatDescr') {
-        $objDecls += "    UPTKsparseDnMatDescr_t dnMatDescr{};`n"
-    }
-    if ($fname -eq 'UPTKsparseSpVecGet' -and $objDecls -notmatch 'spVecDescr') {
-        $objDecls += "    UPTKsparseSpVecDescr_t spVecDescr{};`n"
-    }
-
     $createHandleFlag = if ($fname -eq 'UPTKsparseCreate') { '0' } else { '1' }
-    $teardownDestroyHandle = '1'
-
-    $preCall = ''
-    $postCall = ''
-    $extraObjCleanup = ''
-
-    # ----- Special handling for functions that need valid descriptors or have double-free issues -----
-
-    # UPTKsparseDestroy: after calling destroy, null out handle so teardown doesn't double-free
-    if ($fname -eq 'UPTKsparseDestroy') {
-        $postCall = @'
-
-    sparse_handle = (UPTKsparseHandle_t)(uintptr_t)0;
-'@
-    }
-
-    # UPTKsparseDestroyMatDescr: test destroys descrA; do not destroy again in teardown
-    if ($fname -eq 'UPTKsparseDestroyMatDescr') {
-        $matDestroy = ''
-        $postCall = @'
-
-    descrA = (UPTKsparseMatDescr_t)(uintptr_t)0;
-'@
-    }
-
-    if ($fname -eq 'UPTKsparseDestroy') {
-        $teardownDestroyHandle = '0'
-    }
-
-    # Get functions: need a valid descriptor to query. Create one first, then destroy after.
-    $getCreateCall = ''
-    $getDestroyCall = ''
-    if ($fname -eq 'UPTKsparseCsrGet') {
-        $getCreateCall = 'UPTKsparseCreateCsr(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F)'
-        $getDestroyCall = '    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);'
-    }
-    elseif ($fname -eq 'UPTKsparseCooGet') {
-        $getCreateCall = 'UPTKsparseCreateCoo(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F)'
-        $getDestroyCall = '    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);'
-    }
-    elseif ($fname -eq 'UPTKsparseBlockedEllGet') {
-        $getCreateCall = 'UPTKsparseCreateBlockedEll(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)1, (int64_t)0, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F)'
-        $getDestroyCall = '    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);'
-    }
-    elseif ($fname -eq 'UPTKsparseDnMatGet') {
-        $getCreateCall = 'UPTKsparseCreateDnMat(&dnMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (UPTKDataType_t)UPTK_R_32F, (UPTKsparseOrder_t)0)'
-        $getDestroyCall = '    if (dnMatDescr) UPTKsparseDestroyDnMat(dnMatDescr);'
-    }
-    elseif ($fname -eq 'UPTKsparseSpVecGet') {
-        $getCreateCall = 'UPTKsparseCreateSpVec(&spVecDescr, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F)'
-        $getDestroyCall = '    if (spVecDescr) UPTKsparseDestroySpVec(spVecDescr);'
-    }
-    elseif ($fname -eq 'UPTKsparseSpMatGetFormat') {
-        $getCreateCall = 'UPTKsparseCreateCsr(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F)'
-        $getDestroyCall = '    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);'
-    }
-    # Csr2cscEx2 / Csr2cscEx2_bufferSize: use raw arrays (not descriptors), no special pre-call needed
-    # The pointer fix (Expr-ForParam) already ensures proper device pointer usage
-    elseif ($fname -eq 'UPTKsparseCsr2cscEx2' -or $fname -eq 'UPTKsparseCsr2cscEx2_bufferSize') {
-        # Raw-array functions: keep default behavior, no descriptor creation needed
-    }
-
-    if ($getCreateCall) {
-        $preCall = @"
-
-    err = $getCreateCall;
-    if (err != UPTKSPARSE_STATUS_SUCCESS) {
-        printf("test_skip: $fname create descriptor failed (%d)\n", (int)err);
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
-        return 0;
-    }
-
-"@
-        $extraObjCleanup = @"
-
-$getDestroyCall
-"@
-    }
-
-    # ----- End special handling -----
 
     $matCreate = ''
     $matDestroy = ''
@@ -357,18 +241,18 @@ $getDestroyCall
     err = UPTKsparseCreateMatDescr(&$mn);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: $fname UPTKsparseCreateMatDescr($mn) failed\n");
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
         return 0;
     }
     err = UPTKsparseSetMatIndexBase($mn, UPTKSPARSE_INDEX_BASE_ZERO);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: $fname SetMatIndexBase($mn)\n");
-        UPTKsparseDestroyMatDescr($mn); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr($mn); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
     err = UPTKsparseSetMatType($mn, UPTKSPARSE_MATRIX_TYPE_GENERAL);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: $fname SetMatType($mn)\n");
-        UPTKsparseDestroyMatDescr($mn); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr($mn); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
 
 "@
@@ -390,15 +274,14 @@ $getDestroyCall
 
     $tearBlock = @"
 
-$extraObjCleanup
-$matDestroy    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, $teardownDestroyHandle);
+$matDestroy    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
 "@
 
     if ($fname -eq 'UPTKsparseCreate') {
         $matCreate = ''
         $tearBlock = @"
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
 "@
     }
 
@@ -428,12 +311,11 @@ $setupCall
         return 0;
     }
 
-$matCreate$preCall
+$matCreate
     err = $fname($protoArgs);
 
     printf("$fname -> %d\n", (int)err);
 
-$postCall
 $tearBlock
     printf("test_${fname} PASS\n");
     return 0;

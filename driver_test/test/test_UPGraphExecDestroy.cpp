@@ -202,7 +202,6 @@ int main(void)
     }
 
     err = UPGraphExecDestroy(graphExec);
-    graphExec = {};
 
     printf("UPGraphExecDestroy -> %d\n", (int)err);
 

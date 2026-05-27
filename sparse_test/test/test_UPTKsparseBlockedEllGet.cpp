@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -69,11 +68,6 @@ int main(void)
     void *dev_scratch{};
     UPTKStream_t stream_id{};
     UPTKsparseSpMatDescr_t spMatDescr{};
-    int64_t rows = 0, cols = 0, ellBlockSize = 0, ellCols = 0;
-    void *ellColInd = nullptr, *ellValue = nullptr;
-    UPTKsparseIndexType_t ellIdxType{};
-    UPTKsparseIndexBase_t idxBase{};
-    UPTKDataType valueType{};
 
     UPTKsparseStatus_t err;
 
@@ -83,20 +77,13 @@ int main(void)
         return 0;
     }
 
-    err = UPTKsparseCreateBlockedEll(&spMatDescr, (int64_t)1, (int64_t)1, (int64_t)1, (int64_t)1, (void*)dev_scratch, (void*)dev_scratch, (UPTKsparseIndexType_t)2, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F);
-    if (err != UPTKSPARSE_STATUS_SUCCESS) {
-        printf("test_skip: UPTKsparseBlockedEllGet create descriptor failed (%d)\n", (int)err);
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
-        return 0;
-    }
 
-    err = UPTKsparseBlockedEllGet(spMatDescr, &rows, &cols, &ellBlockSize, &ellCols, &ellColInd, &ellValue, &ellIdxType, &idxBase, &valueType);
+    err = UPTKsparseBlockedEllGet(spMatDescr, (int64_t*)dev_scratch, (int64_t*)dev_scratch, (int64_t*)dev_scratch, (int64_t*)dev_scratch, (void**)nullptr, (void**)nullptr, (UPTKsparseIndexType_t*)dev_scratch, (UPTKsparseIndexBase_t*)dev_scratch, (UPTKDataType*)dev_scratch);
 
     printf("UPTKsparseBlockedEllGet -> %d\n", (int)err);
 
-    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseBlockedEllGet PASS\n");
     return 0;
 }

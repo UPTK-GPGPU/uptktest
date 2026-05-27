@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -82,18 +81,18 @@ int main(void)
     err = UPTKsparseCreateMatDescr(&descr);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSnnz_compress UPTKsparseCreateMatDescr(descr) failed\n");
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
         return 0;
     }
     err = UPTKsparseSetMatIndexBase(descr, UPTKSPARSE_INDEX_BASE_ZERO);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSnnz_compress SetMatIndexBase(descr)\n");
-        UPTKsparseDestroyMatDescr(descr); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr(descr); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
     err = UPTKsparseSetMatType(descr, UPTKSPARSE_MATRIX_TYPE_GENERAL);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
         printf("test_skip: UPTKsparseSnnz_compress SetMatType(descr)\n");
-        UPTKsparseDestroyMatDescr(descr); sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1); return 0;
+        UPTKsparseDestroyMatDescr(descr); sparse_teardown_core(sparse_handle, dev_scratch, stream_id); return 0;
     }
 
     err = UPTKsparseSnnz_compress(sparse_handle, 0, descr, (const float*)dev_scratch, (const int*)dev_scratch, (int*)dev_scratch, (int*)dev_scratch, 0.f);
@@ -103,7 +102,7 @@ int main(void)
 
 
     if (descr) UPTKsparseDestroyMatDescr(descr);
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseSnnz_compress PASS\n");
     return 0;
 }

@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -77,22 +76,14 @@ int main(void)
         printf("test_skip: UPTKsparseSpMatGetFormat setup failed (%d)\n", (int)err);
         return 0;
     }
-    err = UPTKsparseCreateCsr(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F);
-    if (err != UPTKSPARSE_STATUS_SUCCESS) {
-        printf("test_skip: create descriptor failed (%d)\n", (int)err);
-        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
-        return 0;
-    }
-
 
 
     err = UPTKsparseSpMatGetFormat(spMatDescr, (UPTKsparseFormat_t*)dev_scratch);
 
     printf("UPTKsparseSpMatGetFormat -> %d\n", (int)err);
 
-    if (spMatDescr) UPTKsparseDestroySpMat(spMatDescr);
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseSpMatGetFormat PASS\n");
     return 0;
 }

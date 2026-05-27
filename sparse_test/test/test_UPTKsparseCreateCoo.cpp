@@ -51,10 +51,9 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id,
-    int destroy_sparse_handle)
+    UPTKStream_t stream_id)
 {
-    if (destroy_sparse_handle && sparse_handle)
+    if (sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -68,7 +67,6 @@ int main(void)
     UPTKsparseHandle_t sparse_handle{};
     void *dev_scratch{};
     UPTKStream_t stream_id{};
-    UPTKsparseSpMatDescr_t spMatDescr{};
 
     UPTKsparseStatus_t err;
 
@@ -79,12 +77,12 @@ int main(void)
     }
 
 
-    err = UPTKsparseCreateCoo(&spMatDescr, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)UPTKSPARSE_INDEX_32I, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F);
+    err = UPTKsparseCreateCoo((UPTKsparseSpMatDescr_t*)dev_scratch, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (void*)nullptr, (void*)nullptr, (UPTKsparseIndexType_t)0, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKDataType_t)UPTK_R_32F);
 
     printf("UPTKsparseCreateCoo -> %d\n", (int)err);
 
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
     printf("test_UPTKsparseCreateCoo PASS\n");
     return 0;
 }

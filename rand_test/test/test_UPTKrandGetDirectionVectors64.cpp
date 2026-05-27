@@ -77,7 +77,7 @@ int main(void)
         printf("test_skip: UPTKrandGetDirectionVectors64 setup failed (%d)\n", (int)err);
         return 0;
     }
-    err = UPTKrandGetDirectionVectors64(&dv64_holder, (UPTKrandDirectionVectorSet_t)UPTKRAND_DIRECTION_VECTORS_64_JOEKUO6);
+    err = UPTKrandGetDirectionVectors64(&dv64_holder, (UPTKrandDirectionVectorSet_t)0);
 
     printf("UPTKrandGetDirectionVectors64 -> %d\n", (int)err);
 
