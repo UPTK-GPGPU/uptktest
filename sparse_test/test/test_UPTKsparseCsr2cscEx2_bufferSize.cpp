@@ -1,5 +1,5 @@
 /*
- * Auto-generated smoke test for UPTKsparseCsr2cscEx2 (sparse_fun_convert.cpp).
+ * Auto-generated smoke test for UPTKsparseCsr2cscEx2_bufferSize (sparse_fun_convert.cpp).
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/sparse_test/generate_sparse_tests.ps1
  */
 #include <cuda_runtime.h>
@@ -51,9 +51,10 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -72,17 +73,17 @@ int main(void)
 
     err = sparse_setup_core(&sparse_handle, &dev_scratch, &stream_id, 1);
     if (err != UPTKSPARSE_STATUS_SUCCESS) {
-        printf("test_skip: UPTKsparseCsr2cscEx2 setup failed (%d)\n", (int)err);
+        printf("test_skip: UPTKsparseCsr2cscEx2_bufferSize setup failed (%d)\n", (int)err);
         return 0;
     }
 
 
-    err = UPTKsparseCsr2cscEx2(sparse_handle, 0, 0, 0, (const void*)dev_scratch, (const int*)dev_scratch, (const int*)dev_scratch, (void*)nullptr, (int*)dev_scratch, (int*)dev_scratch, (UPTKDataType_t)UPTK_R_32F, (UPTKsparseAction_t)0, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKsparseCsr2CscAlg_t)0, (void*)nullptr);
+    err = UPTKsparseCsr2cscEx2_bufferSize(sparse_handle, 0, 0, 0, (const void*)dev_scratch, (const int*)dev_scratch, (const int*)dev_scratch, (void*)nullptr, (int*)dev_scratch, (int*)dev_scratch, (UPTKDataType_t)UPTK_R_32F, (UPTKsparseAction_t)0, (UPTKsparseIndexBase_t)UPTKSPARSE_INDEX_BASE_ZERO, (UPTKsparseCsr2CscAlg_t)0, (size_t*)dev_scratch);
 
-    printf("UPTKsparseCsr2cscEx2 -> %d\n", (int)err);
+    printf("UPTKsparseCsr2cscEx2_bufferSize -> %d\n", (int)err);
 
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
-    printf("test_UPTKsparseCsr2cscEx2 PASS\n");
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+    printf("test_UPTKsparseCsr2cscEx2_bufferSize PASS\n");
     return 0;
 }
