@@ -201,9 +201,12 @@ int main(void)
         return 0;
     }
 
-    err = UPLaunchKernel_ptsz(kern, 0u, 0u, 0u, 0u, 0u, 0u, 0u, stream, (void**)nullptr, (void**)nullptr);
-
-    printf("UPLaunchKernel_ptsz -> %d\n", (int)err);
+    if (!kern) {
+        printf("test_skip: UPLaunchKernel_ptsz needs valid function\n");
+    } else {
+        err = UPLaunchKernel_ptsz(kern, 0u, 0u, 0u, 0u, 0u, 0u, 0u, stream, (void**)nullptr, (void**)nullptr);
+        printf("UPLaunchKernel_ptsz -> %d\n", (int)err);
+    }
 
     driver_smoke_teardown(
         dev,

@@ -51,9 +51,10 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
@@ -68,6 +69,11 @@ int main(void)
     void *dev_scratch{};
     UPTKStream_t stream_id{};
     UPTKsparseDnMatDescr_t dnMatDescr{};
+    // 新增：分配合法的设备内存作为矩阵数据
+    float *d_mat_data = nullptr;
+    const int64_t rows = 2;    // 合法行数
+    const int64_t cols = 3;    // 合法列数
+    const int64_t lda = cols;  // 合法步长（列优先时lda=cols，行优先时lda=rows）
 
     UPTKsparseStatus_t err;
 
@@ -77,13 +83,54 @@ int main(void)
         return 0;
     }
 
+    // 新增：分配设备内存存储矩阵数据
+    if (cudaMalloc((void**)&d_mat_data, rows * cols * sizeof(float)) != cudaSuccess) {
+        printf("test_skip: cudaMalloc for matrix data failed\n");
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+        return 0;
+    }
 
-    err = UPTKsparseDnMatGet(dnMatDescr, (int64_t*)dev_scratch, (int64_t*)dev_scratch, (int64_t*)dev_scratch, (void**)nullptr, (UPTKDataType*)dev_scratch, (UPTKsparseOrder_t*)dev_scratch);
+    // 修正：传入合法的矩阵参数（非0行列数、合法步长、有效设备指针）
+    err = UPTKsparseCreateDnMat(
+        &dnMatDescr, 
+        rows,                  // 行数（非0）
+        cols,                  // 列数（非0）
+        lda,                   // 步长（非0）
+        d_mat_data,            // 有效设备指针
+        UPTK_R_32F,            // 数据类型
+        UPTKSPARSE_ORDER_COL   // 矩阵存储顺序（显式指定合法值，而非0）
+    );
+    if (err != UPTKSPARSE_STATUS_SUCCESS) {
+        printf("test_skip: create descriptor failed (%d)\n", (int)err);
+        cudaFree(d_mat_data);  // 新增：释放已分配的内存
+        sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
+        return 0;
+    }
+
+    // 可选：如果需要获取参数，可定义变量接收
+    int64_t out_rows, out_cols, out_lda;
+    void *out_data;
+    UPTKDataType out_dtype;
+    UPTKsparseOrder_t out_order;
+    err = UPTKsparseDnMatGet(
+        dnMatDescr, 
+        &out_rows,    // 接收行数
+        &out_cols,    // 接收列数
+        &out_lda,     // 接收步长
+        &out_data,    // 接收数据指针
+        &out_dtype,   // 接收数据类型
+        &out_order    // 接收存储顺序
+    );
 
     printf("UPTKsparseDnMatGet -> %d\n", (int)err);
+    // 可选：打印获取到的参数，验证正确性
+    printf("Got matrix params: rows=%lld, cols=%lld, lda=%lld, dtype=%d, order=%d\n",
+           out_rows, out_cols, out_lda, (int)out_dtype, (int)out_order);
 
+    if (dnMatDescr) UPTKsparseDestroyDnMat(dnMatDescr);
+    if (d_mat_data) cudaFree(d_mat_data);  // 新增：释放矩阵数据内存
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
     printf("test_UPTKsparseDnMatGet PASS\n");
     return 0;
 }

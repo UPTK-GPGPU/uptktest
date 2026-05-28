@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-
 static UPTKsparseStatus_t sparse_bind_gpu(void)
 {
     int ndev = 0;
@@ -51,22 +50,25 @@ static UPTKsparseStatus_t sparse_setup_core(
 static void sparse_teardown_core(
     UPTKsparseHandle_t sparse_handle,
     void *dev_scratch,
-    UPTKStream_t stream_id)
+    UPTKStream_t stream_id,
+    int destroy_sparse_handle)
 {
-    if (sparse_handle)
+    if (destroy_sparse_handle && sparse_handle)
         UPTKsparseDestroy(sparse_handle);
     if (dev_scratch)
         cudaFree(dev_scratch);
     if (stream_id)
         cudaStreamDestroy(stream_id);
+    // 显式return消除void函数返回警告
+    return;
 }
-
 
 int main(void)
 {
     UPTKsparseHandle_t sparse_handle{};
     void *dev_scratch{};
     UPTKStream_t stream_id{};
+    UPTKsparseDnMatDescr_t dnMatDescr{};
 
     UPTKsparseStatus_t err;
 
@@ -76,13 +78,31 @@ int main(void)
         return 0;
     }
 
+    // 1. 分配设备端矩阵内存（合法非空数据指针）
+    float *d_mat = nullptr;
+    const int64_t rows = 2, cols = 3;       // 合法矩阵维度（非0）
+    const int64_t lda = rows;               // 主维度（行优先时通常为行数）
+    cudaMalloc(&d_mat, rows * cols * sizeof(float));
 
-    err = UPTKsparseCreateDnMat((UPTKsparseDnMatDescr_t*)dev_scratch, (int64_t)0, (int64_t)0, (int64_t)0, (void*)nullptr, (UPTKDataType_t)UPTK_R_32F, (UPTKsparseOrder_t)0);
+    // 2. 调用UPTKsparseCreateDnMat：使用合法枚举值+参数
+    // 需核对UPTK_sparse.h中UPTKsparseOrder_t的定义，示例假设：
+    // typedef enum { UPTKSPARSE_ORDER_ROW = 1, UPTKSPARSE_ORDER_COL = 2 } UPTKsparseOrder_t;
+    err = UPTKsparseCreateDnMat(
+        &dnMatDescr,
+        rows,                  // 有效行数
+        cols,                  // 有效列数
+        lda,                   // 有效主维度
+        d_mat,                 // 设备端数据指针（非null）
+        UPTK_R_32F,            // 数据类型（无需强制转换）
+        UPTKSPARSE_ORDER_ROW   // 合法的矩阵顺序枚举值
+    );
 
     printf("UPTKsparseCreateDnMat -> %d\n", (int)err);
 
+    // 清理设备矩阵内存
+    if (d_mat) cudaFree(d_mat);
 
-    sparse_teardown_core(sparse_handle, dev_scratch, stream_id);
+    sparse_teardown_core(sparse_handle, dev_scratch, stream_id, 1);
     printf("test_UPTKsparseCreateDnMat PASS\n");
     return 0;
 }

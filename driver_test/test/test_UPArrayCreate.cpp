@@ -3,9 +3,9 @@
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/driver_test/generate_driver_tests.ps1
  */
 #include <cuda.h>
-#include "driver_smoke_types.h"
+#include "../driver_smoke_types.h"
 #include <UPTK.h>
-#include "driver_smoke_decls.h"
+#include "../driver_smoke_decls.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -61,7 +61,7 @@ static UPTKError driver_smoke_setup(
         UPTK_ARRAY_DESCRIPTOR ad{};
         ad.Width = 64;
         ad.Height = 0;
-        ad.Format = (UPTKarray_format)CU_AD_FORMAT_UNSIGNED_INT8;
+        ad.Format = UPTK_AD_FORMAT_UNSIGNED_INT8;
         ad.NumChannels = 1;
         err = UPArrayCreate(arr, &ad);
         if (err != UPTKSuccess) return err;
@@ -144,7 +144,6 @@ static void driver_smoke_teardown(
     UPCtxSetCurrent((UPTKcontext)(uintptr_t)0);
 }
 
-
 int main(void)
 {
     UPTKdevice dev{};
@@ -170,7 +169,12 @@ int main(void)
     UPTKUserObject_t userObj{};
     UPTKlinkState linkState{};
     UPTKStreamCaptureStatus captureStatus{};
+
     UPTK_ARRAY_DESCRIPTOR local_pAllocateArray{};
+    local_pAllocateArray.Width = 64;
+    local_pAllocateArray.Height = 0;
+    local_pAllocateArray.Format = UPTK_AD_FORMAT_UNSIGNED_INT8;
+    local_pAllocateArray.NumChannels = 1;
     UPTKarray local_pHandle{};
 
     const int graph_level = -1;
@@ -205,6 +209,9 @@ int main(void)
     err = UPArrayCreate(&local_pHandle, &local_pAllocateArray);
 
     printf("UPArrayCreate -> %d\n", (int)err);
+    if (local_pHandle) {
+        UPArrayDestroy(local_pHandle);
+    }
 
     driver_smoke_teardown(
         dev,
@@ -226,4 +233,3 @@ int main(void)
     printf("test_UPArrayCreate PASS\n");
     return 0;
 }
-

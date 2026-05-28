@@ -3,9 +3,9 @@
  * Regenerate: powershell -ExecutionPolicy Bypass -File test/driver_test/generate_driver_tests.ps1
  */
 #include <cuda.h>
-#include "driver_smoke_types.h"
+#include "../driver_smoke_types.h"
 #include <UPTK.h>
-#include "driver_smoke_decls.h"
+#include "../driver_smoke_decls.h"
 #include <stdint.h>
 #include <stdio.h>
 

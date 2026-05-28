@@ -1,11 +1,7 @@
-/*
- * Auto-generated smoke test for driver wrapper UPCtxDestroy (driver_fun_convert.cpp).
- * Regenerate: powershell -ExecutionPolicy Bypass -File test/driver_test/generate_driver_tests.ps1
- */
 #include <cuda.h>
-#include "driver_smoke_types.h"
+#include "../driver_smoke_types.h"
 #include <UPTK.h>
-#include "driver_smoke_decls.h"
+#include "../driver_smoke_decls.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -141,6 +137,7 @@ static void driver_smoke_teardown(
     if (stream) {
         UPStreamDestroy(stream);
     }
+
     UPCtxSetCurrent((UPTKcontext)(uintptr_t)0);
 }
 
@@ -170,6 +167,7 @@ int main(void)
     UPTKUserObject_t userObj{};
     UPTKlinkState linkState{};
     UPTKStreamCaptureStatus captureStatus{};
+    UPTKcontext local_pctx{};
     
 
     const int graph_level = -1;
@@ -201,7 +199,11 @@ int main(void)
         return 0;
     }
 
-    err = UPCtxDestroy(ctx);
+    err = UPCtxCreate(&local_pctx, 0u, dev);
+    if (err == UPTKSuccess) {
+        err = UPCtxDestroy(local_pctx);
+        local_pctx = {};
+    }
 
     printf("UPCtxDestroy -> %d\n", (int)err);
 
@@ -225,4 +227,3 @@ int main(void)
     printf("test_UPCtxDestroy PASS\n");
     return 0;
 }
-

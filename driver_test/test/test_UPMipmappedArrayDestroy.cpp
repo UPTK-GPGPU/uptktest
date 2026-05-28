@@ -202,6 +202,7 @@ int main(void)
     }
 
     err = UPMipmappedArrayDestroy(mipmap);
+    mipmap = {};
 
     printf("UPMipmappedArrayDestroy -> %d\n", (int)err);
 
